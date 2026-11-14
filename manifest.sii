@@ -1,0 +1,13 @@
+SiiNunit
+{
+mod_package : .package_name
+{
+    package_version: "202611130738"
+    display_name: "Un-CCP Flags Collection Pack"
+    author: "通番救國政治部"
+    category[]: "accessory"
+    icon: "mod_icon.jpg"
+    description_file: "mod_description.txt"
+    mp_mod_optional: true
+}
+}
