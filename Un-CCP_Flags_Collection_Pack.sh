@@ -1,6 +1,12 @@
 #!/bin/bash
 
 # ==============================================================================
+# 🔒 【編碼防呆設定】 強制鎖定 UTF-8，防止 Windows 環境執行時中文變亂碼或截斷
+# ==============================================================================
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8
+
+# ==============================================================================
 # 歐卡 2 多合一窗旗「全車系卡車 (含 Actros 2014) + Coaches DLC 客運巴士」自動生成腳本
 # ==============================================================================
 
@@ -16,15 +22,18 @@ fi
 # ==============================================================================
 
 # 統一版本號（自動同步套用至 manifest.sii 與 mod_description.txt）
-MOD_VERSION="202611130738"
+MOD_VERSION=$(date +"%Y%m%d%H%M")
 
-flag_list=(
-    "flag1" "flag2" "flag3" "flag4" "flag5" "flag6" "flag7" "flag8" "flag9" "flag10"
-)
-
+# 旗幟代號清單
 flag_names=(
     "hkguk" "hkcab" "tsnec" "hkred" "hkgim" "china" "twdpp" "tibet" "kokba" "hkgam"
 )
+
+# 直接讓 ID 與代號相同，徹底避免與其他模組的 flag1~flag10 衝突
+flag_list=("${flag_names[@]}")
+
+# 貼圖檔案前綴（Un-CCP 留空 ""；若是 TW 模組且貼圖名為 twtpe.tobj，請改為 "tw"）
+TEX_PREFIX=""
 
 # ==============================================================================
 # 🚗 【車輛清單區域】 卡車 (def/vehicle/truck) 與 客運巴士 (def/vehicle/bus)
@@ -58,16 +67,33 @@ if [ ${#flag_list[@]} -ne ${#flag_names[@]} ]; then
 fi
 
 echo "--------------------------------------------------"
-echo "🎨 [1/4] 正在自動補齊 UI 選單專用的 .mat 材質檔..."
+echo "🎨 [1/4] 正在自動補齊 UI 選單與 3D 旗幟專用的 .mat 材質檔..."
 echo "--------------------------------------------------"
 
 mkdir -p "material/ui/accessory/flag"
+mkdir -p "vehicle/truck/upgrade/flag"
+
 for FNAME in "${flag_names[@]}"; do
+    # 1. 生成 UI 選單圖示材質檔
     cat << EOF > "material/ui/accessory/flag/flag_${FNAME}.mat"
 material : "ui"
 {
 	texture : "flag_${FNAME}.tobj"
 	texture_name : "texture"
+}
+EOF
+
+    # 2. 生成 3D 旗幟本體材質檔
+    cat << EOF > "vehicle/truck/upgrade/flag/${FNAME}.mat"
+material : "eut2.dif.shadow"
+{
+	texture : "${TEX_PREFIX}${FNAME}.tobj"
+	texture_name : "texture_base"
+	add_ambient : 0
+	diffuse : { 1.0 , 1.0 , 1.0 }
+	reflection : 0
+	shininess : 4
+	specular : { 0.0 , 0.0 , 0.0 }
 }
 EOF
 done
@@ -165,13 +191,13 @@ for bus in "${all_buses[@]}"; do
     generate_flags "bus" "$bus"
 done
 
-# 建立聯運專用 manifest.sii 檔案
-cat << EOF > manifest.sii
+# 建立聯運專用 manifest.sii 檔案（防截斷寫法）
+cat << 'EOF' > manifest.sii
 SiiNunit
 {
 mod_package : .package_name
 {
-    package_version: "${MOD_VERSION}"
+    package_version: "__MOD_VERSION__"
     display_name: "Un-CCP Flags Collection Pack"
     author: "通番救國政治部"
     category[]: "accessory"
@@ -181,10 +207,11 @@ mod_package : .package_name
 }
 }
 EOF
+sed -i "s/__MOD_VERSION__/${MOD_VERSION}/g" manifest.sii
 
 # 自動生成 mod_description.txt 模組說明檔
-cat << EOF > mod_description.txt
-Un-CCP Flags Collection Pack v ${MOD_VERSION}
+cat << 'EOF' > mod_description.txt
+Un-CCP Flags Collection Pack v __MOD_VERSION__
 
 您需要擁有並安裝官方的「Euro Truck Simulator 2 - Window Flags」DLC！才能使用，
 
@@ -201,6 +228,7 @@ MAN TGX
 
 VOLVO FH5
 EOF
+sed -i "s/__MOD_VERSION__/${MOD_VERSION}/g" mod_description.txt
 
 total_vehicles=$((${#all_trucks[@]} + ${#all_buses[@]}))
 total_files=$((total_vehicles * ${#flag_list[@]} * 2))
