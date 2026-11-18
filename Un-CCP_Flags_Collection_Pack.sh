@@ -329,7 +329,7 @@ __DISPLAY_NAME__ v __MOD_VERSION__
 
 您需要擁有並安裝官方的「Euro Truck Simulator 2 - Window Flags」DLC！才能使用，
 
-製作 通番救國政治部
+製作 通番救國政治部 / PDSNCF / Political Department of Saving the Nation by Colluding with Foreigners
 
 
 該模組為遊戲中所有標準 SCS 卡車及巴士添加旗幟
